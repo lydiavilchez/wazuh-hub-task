@@ -1,0 +1,2 @@
+<!-- Added inside <syscheck> in /var/ossec/etc/ossec.conf on the agent -->
+<directories check_all="yes" report_changes="yes" realtime="yes">/home/lydiavilchezlopez/vigilada</directories>
