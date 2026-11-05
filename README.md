@@ -1,22 +1,35 @@
-# Wazuh Hub technical task
+# Wazuh Hub: Software Engineer Technical Task
 
-Work for the Wazuh Hub Software Engineer technical task (72 h).
+This repository holds my work for the Wazuh Hub Software Engineer technical task. 
+
+## Deliverables
+
+| Phase | What it contains | Status |
+|---|---|---|
+| [Phase 1](phase1/PHASE1.md) | My Wazuh lab: installation, agent, admin password change, FIM, my own decoder and rule, SCA, API, and 12 screenshots | Done |
+| [Phase 2](phase2/PHASE2.md) | The needs I found, what I discarded, the one I chose and why. Sources and notes in [RESEARCH.md](phase2/research/RESEARCH.md) | Done |
+| Phase 3 | Service design and diagrams | In progress |
+| Phase 4 | Plan to build it with AI agents | In progress |
+
+## Lab at a glance
+
+- **Wazuh:** 4.14.9, Docker, single-node (manager, indexer and dashboard).
+- **Agent:** Ubuntu 24.04 on OrbStack, same version as the manager.
+- **Screenshots:** [phase1/assets/img](phase1/assets/img)
+- **Real API responses:** [phase2/evidence](phase2/evidence)
 
 ## Repository map
 
-- `PLAN.md` — plan and timeline for the 72 h task.
-- `phase1/` — Phase 1 lab (Wazuh install, agent, FIM, custom decoder/rule, SCA, API).
-- `phase2/` — Phase 2 research and the chosen need, with lab API evidence.
-
-## Deliverables by phase
-
-- **Phase 1 — Wazuh lab (no AI):** [phase1/PHASE1.md](phase1/PHASE1.md)
-- **Phase 2 — Research and chosen need (with AI):** [phase2/PHASE2.md](phase2/PHASE2.md) · research: [phase2/research/RESEARCH.md](phase2/research/RESEARCH.md)
-- **Phase 3 — Service design and diagrams:** phase3/PHASE3.md _(pending)_
-- **Phase 4 — Workflow and agent setup:** phase4/PHASE4.md _(pending)_
-
-## Requirements
-
-## How to run
-
-## Known limitations
+```text
+.
+├── README.md      # This file
+├── PLAN.md        # Day-by-day plan for the 72 hours
+├── phase1/
+│   ├── PHASE1.md  # Phase 1 answers
+│   ├── agent-fim-config.xml  # FIM block added to the agent's ossec.conf
+│   └── assets/img/           # Lab screenshots
+└── phase2/
+    ├── PHASE2.md  # Phase 2 answers
+    ├── research/  # RESEARCH.md: sources, notes and discarded needs
+    └── evidence/  # Real Wazuh API responses, decoder and rule files
+```
