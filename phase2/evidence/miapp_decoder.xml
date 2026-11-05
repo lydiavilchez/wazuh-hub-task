@@ -1,0 +1,9 @@
+<decoder name="miapp">
+  <program_name>miapp</program_name>
+</decoder>
+
+<decoder name="miapp-login-failed">
+  <parent>miapp</parent>
+  <regex>login_failed user=(\S+) ip=(\S+) reason=(\S+)</regex>
+  <order>srcuser, srcip, reason</order>
+</decoder>

@@ -1,0 +1,44 @@
+{
+   "error": 0,
+   "data": {
+      "messages": [
+         "INFO: (7202): Session initialized with token '62bbe01f'"
+      ],
+      "token": "62bbe01f",
+      "output": {
+         "timestamp": "2026-11-05T11:40:26.188000Z",
+         "rule": {
+            "level": 2,
+            "description": "Unknown problem somewhere in the system.",
+            "id": "1002",
+            "firedtimes": 1,
+            "mail": false,
+            "groups": [
+               "syslog",
+               "errors"
+            ],
+            "gpg13": [
+               "4.3"
+            ]
+         },
+         "agent": {
+            "id": "000",
+            "name": "wazuh.manager"
+         },
+         "manager": {
+            "name": "wazuh.manager"
+         },
+         "id": "1793878826.2055360",
+         "full_log": "Nov  5 12:50:01 agente miapp[4321]: login_failed user=lydia ip=198.51.100.7 reason=bad_password",
+         "predecoder": {
+            "program_name": "miapp",
+            "timestamp": "Nov  5 12:50:01",
+            "hostname": "agente"
+         },
+         "decoder": {},
+         "location": "logtest-lab"
+      },
+      "alert": false,
+      "codemsg": 0
+   }
+}

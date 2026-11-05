@@ -1,0 +1,51 @@
+{
+   "error": 0,
+   "data": {
+      "messages": [
+         "INFO: (7202): Session initialized with token 'd65b715a'"
+      ],
+      "token": "d65b715a",
+      "output": {
+         "timestamp": "2026-11-05T11:42:57.715000Z",
+         "rule": {
+            "level": 2,
+            "description": "Unknown problem somewhere in the system.",
+            "id": "1002",
+            "firedtimes": 1,
+            "mail": false,
+            "groups": [
+               "syslog",
+               "errors"
+            ],
+            "gpg13": [
+               "4.3"
+            ]
+         },
+         "agent": {
+            "id": "000",
+            "name": "wazuh.manager"
+         },
+         "manager": {
+            "name": "wazuh.manager"
+         },
+         "id": "1793878977.2055360",
+         "full_log": "Nov  5 12:51:01 agente miapp[4321]: login_failed user=lydia ip=198.51.100.7 reason=ok",
+         "predecoder": {
+            "program_name": "miapp",
+            "timestamp": "Nov  5 12:51:01",
+            "hostname": "agente"
+         },
+         "decoder": {
+            "name": "miapp"
+         },
+         "data": {
+            "srcip": "198.51.100.7",
+            "srcuser": "lydia",
+            "reason": "ok"
+         },
+         "location": "logtest-lab"
+      },
+      "alert": false,
+      "codemsg": 0
+   }
+}

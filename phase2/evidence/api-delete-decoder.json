@@ -1,0 +1,12 @@
+{
+   "data": {
+      "affected_items": [
+         "etc/decoders/miapp_decoder.xml"
+      ],
+      "total_affected_items": 1,
+      "total_failed_items": 0,
+      "failed_items": []
+   },
+   "message": "Decoder file was successfully deleted",
+   "error": 0
+}

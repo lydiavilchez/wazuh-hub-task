@@ -1,0 +1,12 @@
+{
+   "data": {
+      "affected_items": [
+         "etc/rules/miapp_rules.xml"
+      ],
+      "total_affected_items": 1,
+      "total_failed_items": 0,
+      "failed_items": []
+   },
+   "message": "Rule was successfully deleted",
+   "error": 0
+}

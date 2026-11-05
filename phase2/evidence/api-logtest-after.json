@@ -1,0 +1,49 @@
+{
+   "error": 0,
+   "data": {
+      "messages": [
+         "INFO: (7202): Session initialized with token 'db5651c6'"
+      ],
+      "token": "db5651c6",
+      "output": {
+         "timestamp": "2026-11-05T11:42:30.590000Z",
+         "rule": {
+            "level": 5,
+            "description": "miapp: login failed (bad password)",
+            "id": "100100",
+            "firedtimes": 1,
+            "mail": false,
+            "groups": [
+               "local",
+               "miapp",
+               "authentication_failed"
+            ]
+         },
+         "agent": {
+            "id": "000",
+            "name": "wazuh.manager"
+         },
+         "manager": {
+            "name": "wazuh.manager"
+         },
+         "id": "1793878950.2055360",
+         "full_log": "Nov  5 12:50:01 agente miapp[4321]: login_failed user=lydia ip=198.51.100.7 reason=bad_password",
+         "predecoder": {
+            "program_name": "miapp",
+            "timestamp": "Nov  5 12:50:01",
+            "hostname": "agente"
+         },
+         "decoder": {
+            "name": "miapp"
+         },
+         "data": {
+            "srcip": "198.51.100.7",
+            "srcuser": "lydia",
+            "reason": "bad_password"
+         },
+         "location": "logtest-lab"
+      },
+      "alert": true,
+      "codemsg": 0
+   }
+}

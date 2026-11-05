@@ -1,0 +1,15 @@
+{
+   "data": {
+      "affected_items": [
+         {
+            "name": "manager",
+            "status": "OK"
+         }
+      ],
+      "total_affected_items": 1,
+      "total_failed_items": 0,
+      "failed_items": []
+   },
+   "message": "Validation was successfully checked",
+   "error": 0
+}
