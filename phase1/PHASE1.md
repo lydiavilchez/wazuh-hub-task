@@ -49,61 +49,61 @@ If I had one more day, I would like to build something small on top of Wazuh, no
 ## Screenshots
 
 ### 01. Stack running
-![01](screenshots/01.stack_running.png)
+![01](assets/img/01.stack_running.png)
 
 The first step was to bring Wazuh up with Docker. Here we can see the three containers (manager, indexer and dashboard) up and running.
 
 ### 02. Dashboard
-![02](screenshots/02.dashboard.png)
+![02](assets/img/02.dashboard.png)
 
 With the containers running I could already log into the dashboard, but there was no agent connected yet.
 
 ### 03. Agent installed
-![03](screenshots/03.agent.png)
+![03](assets/img/03.agent.png)
 
 Then I moved on to installing the agent on an Ubuntu machine created with OrbStack. In this screenshot we can see the agent service active and running.
 
 ### 04. Agent active in the dashboard
-![04](screenshots/04.agent_dashboard.png)
+![04](assets/img/04.agent_dashboard.png)
 
 Once the agent was installed, it showed up as active in the dashboard.
 
 ### 05. Admin password in the compose file
-![05](screenshots/05.admin_compose_password.png)
+![05](assets/img/05.admin_compose_password.png)
 
 As the Wazuh documentation recommends, I changed the default `admin` password following the steps it describes. One of them is changing it in `docker-compose.yml`, which is what we can see here (I covered it).
 
 ### 06. Reloading the security configuration
-![06](screenshots/06.admin_securityadmin.png)
+![06](assets/img/06.admin_securityadmin.png)
 
 Changing it in the files is not enough, because the indexer keeps the users in its own security configuration. The last step was to reload it with `securityadmin.sh` so it would use the new password. When it finished without errors, I could log into the dashboard with it.
 
 ### 07. FIM alerts
-![07](screenshots/07.fim_dashboard.png)
+![07](assets/img/07.fim_dashboard.png)
 
 To try FIM, I set up a folder to be monitored in real time and started creating, modifying and deleting a file. The three alerts showed up in the dashboard: file added, modified and deleted.
 
 ### 08. Testing the decoder and the rule with logtest
-![08](screenshots/08.custom_rule_logtest.png)
+![08](assets/img/08.custom_rule_logtest.png)
 
 Before using my decoder and my rule for real, I tested them with `wazuh-logtest`. Here we can see how Wazuh understands the log line: it extracts the user and the IP, and my rule matches.
 
 ### 09. Alert from my custom rule
-![09](screenshots/09.custom_rule_alert.png)
+![09](assets/img/09.custom_rule_alert.png)
 
 After making the agent read the log file, the alert showed up in the dashboard with the user and the IP that my decoder extracted.
 
 ### 10. SCA
-![10](screenshots/10.sca_general.png)
+![10](assets/img/10.sca_general.png)
 
 In the dashboard I also looked at the SCA assessment of my agent, with the CIS policy for Ubuntu that Wazuh includes by default.
 
 ### 11. A failed SCA check
-![11](screenshots/11.sca_failed.png)
+![11](assets/img/11.sca_failed.png)
 
 I opened some of the failed checks to see what they check, why they matter and how to fix them.
 
 ### 12. Wazuh API
-![12](screenshots/12.api.png)
+![12](assets/img/12.api.png)
 
 Finally, I tried the API. Here we can see the response when I ask for the list of agents: the manager and my agent, both active.
