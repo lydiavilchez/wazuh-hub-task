@@ -1,0 +1,45 @@
+sequenceDiagram
+    actor P as Person
+    participant UI as Hub console
+    participant O as Orchestrator
+    participant R as Redactor
+    participant M as Model
+    participant C as Static checker
+    participant S as Disposable Wazuh
+
+    P->>UI: Paste log lines, pick Wazuh version, optional own decoders and rules
+    UI->>O: New request
+    O->>R: Raw samples
+    R-->>O: Redacted samples and private mapping
+    O-->>UI: Show redacted samples
+    rect rgb(255, 243, 214)
+    Note over P,UI: HUMAN 1: checks that nothing sensitive is left, edits if needed
+    end
+    P->>UI: Confirm, say what should raise an alert and at which level
+    UI->>O: Confirmed samples and intent
+    rect rgb(236, 226, 251)
+    O->>M: AI CALL 1: samples, intent, syntax guide, user's files
+    M-->>O: Decoder, rule, positive and negative test logs (structured output)
+    end
+    O->>C: Static checks
+    C-->>O: OK or list of problems
+    O->>S: Start sandbox with user's files and the proposal
+    S-->>O: Upload result and configuration validation
+    O->>S: Logtest: positive logs, negative logs, Wazuh regression corpus
+    S-->>O: Decoder, fields, rule and alert per log
+    alt Some check fails (max 3 repairs)
+        rect rgb(236, 226, 251)
+        O->>M: AI CALL 2 to 4: the exact errors
+        M-->>O: Corrected decoder and rule
+        end
+        O->>S: Same checks and tests again
+    end
+    O->>S: Destroy sandbox
+    O-->>UI: Files, test table, explanation, or "could not solve it"
+    rect rgb(255, 243, 214)
+    Note over P,UI: HUMAN 2: reviews files and results, adds a log or asks for changes
+    end
+    P->>UI: Download
+    rect rgb(255, 243, 214)
+    Note over P,UI: HUMAN 3: installs in their own Wazuh, tests with logtest, restarts the manager
+    end

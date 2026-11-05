@@ -1,0 +1,49 @@
+flowchart LR
+    Start["Person<br/>pastes the log and<br/>says what to detect"]
+
+    subgraph Service["Service in the Wazuh Hub"]
+        subgraph Steps["Steps of each request"]
+            Redactor["1. Redactor<br/>hides IPs, users,<br/>emails and hosts"]
+            Checker["3. Static checker<br/>reviews the files<br/>before testing"]
+            Runner["4. Test runner<br/>runs every test"]
+            SB["5. Disposable Wazuh<br/>same version,<br/>no network"]
+        end
+        subgraph Support["Coordination and records"]
+            Orch["Orchestrator<br/>coordinates every step"]
+            Store["Customer store<br/>conversations and results,<br/>encrypted per organisation"]
+            Audit["Audit log<br/>who did what and when,<br/>no log content"]
+        end
+    end
+
+    Model["2. AI model<br/>writes decoder, rule<br/>and test logs"]
+    Review["6. Person<br/>reviews the tested<br/>files and results"]
+    UserWazuh["7. User's own Wazuh<br/>the person installs<br/>the files"]
+
+    Start --> Redactor
+    Redactor --> Model
+    Model --> Checker
+    Checker --> Runner
+    Runner <--> SB
+    Runner --> Review
+    Review --> UserWazuh
+    Runner -.-> Model
+    Orch --> Store
+    Orch --> Audit
+    Orch -.-> Steps
+
+    classDef component fill:#cfe0ff,stroke:#1f4f99,stroke-width:2px,color:#0b2147
+    classDef support fill:#eef4ff,stroke:#1f4f99,stroke-width:2px,color:#0b2147
+    classDef ai fill:#e3d3fa,stroke:#5b2d9a,stroke-width:2px,color:#26104a
+    classDef outside fill:#ffffff,stroke:#4a5563,stroke-width:2px,color:#1f2a36
+    class Redactor,Checker,Runner,SB component
+    class Orch,Store,Audit support
+    class Model ai
+    class Start,Review,UserWazuh outside
+    style Service fill:#ffffff,stroke:#1f4f99,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    style Steps fill:#ffffff,stroke:#9fb3d1,stroke-width:1px,color:#0b2147
+    style Support fill:#ffffff,stroke:#9fb3d1,stroke-width:1px,color:#0b2147
+
+    linkStyle 0,1,2,3,4,5,6 stroke:#1f2a36,stroke-width:2px
+    linkStyle 7 stroke:#5b2d9a,stroke-width:2px
+    linkStyle 8,9 stroke:#1f4f99,stroke-width:2px
+    linkStyle 10 stroke:#1f4f99,stroke-width:2px,stroke-dasharray:4 4

@@ -1,0 +1,33 @@
+flowchart LR
+    subgraph Sources["Evaluation cases"]
+        Threads["Real mailing list threads<br/>log and the solution<br/>that worked"]
+        Adv["Adversarial cases<br/>injection in logs, silencing,<br/>personal data, slow regex"]
+    end
+
+    Cases["Private benchmark<br/>expected fields, expected rule<br/>and negative logs,<br/>never shown to the AI"]
+    Run["Same test runner<br/>as production,<br/>new disposable Wazuh"]
+    Score["Scores<br/>solved, fields right, false alerts,<br/>repairs, cost and time"]
+    Ship["Better or equal<br/>release the new model<br/>or instructions"]
+    Keep["Worse<br/>keep the current version"]
+
+    Prod["Production signals<br/>pass rate, repairs, downloads,<br/>'it worked' feedback"]
+    Alarm["Alarm if the signals drop,<br/>and a full run every week"]
+
+    Threads --> Cases
+    Adv --> Cases
+    Cases --> Run --> Score
+    Score --> Ship
+    Score --> Keep
+    Prod --> Alarm
+    Alarm -.-> Run
+
+    classDef component fill:#cfe0ff,stroke:#1f4f99,stroke-width:2px,color:#0b2147
+    classDef outside fill:#ffffff,stroke:#4a5563,stroke-width:2px,color:#1f2a36
+    classDef good fill:#d6f0ea,stroke:#1f7a6b,stroke-width:2px,color:#0d3a33
+    classDef bad fill:#fde2e2,stroke:#a52a2a,stroke-width:2px,color:#5c1111
+    class Cases,Run,Score component
+    class Threads,Adv,Prod outside
+    class Ship good
+    class Keep,Alarm bad
+    style Sources fill:#ffffff,stroke:#9fb3d1,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    linkStyle default stroke:#1f2a36,stroke-width:2px

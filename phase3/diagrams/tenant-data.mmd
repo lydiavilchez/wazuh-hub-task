@@ -1,0 +1,48 @@
+flowchart LR
+    subgraph B["Organisation B"]
+        PB["Members of B<br/>signed in with the Hub identity"]
+        DB["Data of B<br/>conversations, samples,<br/>files and results"]
+        SB["Disposable Wazuh<br/>for one request of B,<br/>destroyed after"]
+    end
+
+    subgraph A["Organisation A"]
+        PA["Members of A<br/>signed in with the Hub identity"]
+        DA["Data of A<br/>conversations, samples,<br/>files and results"]
+        SA["Disposable Wazuh<br/>for one request of A,<br/>destroyed after"]
+    end
+
+    subgraph Shared["Shared service"]
+        Access["Identity and organisation<br/>checked on every call"]
+        Orch["Orchestrator<br/>only reads and writes the data<br/>of the caller's organisation"]
+    end
+
+    Model["AI model<br/>receives only the hidden samples<br/>and files of one request,<br/>no storage, no training"]
+    Staff["Wazuh staff<br/>no access by default,<br/>audited support access only<br/>with the customer's permission"]
+    Denied["Not allowed<br/>reading another organisation's data,<br/>sharing a disposable Wazuh,<br/>training on customer data"]
+
+    PB --> Access
+    PA --> Access
+    Access --> Orch
+    Orch --> DB
+    Orch --> SB
+    Orch --> DA
+    Orch --> SA
+    Orch --> Model
+    Staff -.-> Access
+
+    classDef orgA fill:#cfe0ff,stroke:#1f4f99,stroke-width:2px,color:#0b2147
+    classDef orgB fill:#d6f0ea,stroke:#1f7a6b,stroke-width:2px,color:#0d3a33
+    classDef support fill:#eef4ff,stroke:#1f4f99,stroke-width:2px,color:#0b2147
+    classDef ai fill:#e3d3fa,stroke:#5b2d9a,stroke-width:2px,color:#26104a
+    classDef outside fill:#ffffff,stroke:#4a5563,stroke-width:2px,color:#1f2a36
+    classDef deny fill:#fde2e2,stroke:#a52a2a,stroke-width:2px,color:#5c1111
+    class PA,DA,SA orgA
+    class PB,DB,SB orgB
+    class Access,Orch support
+    class Model ai
+    class Staff outside
+    class Denied deny
+    style A fill:#ffffff,stroke:#1f4f99,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    style B fill:#ffffff,stroke:#1f7a6b,stroke-width:2px,stroke-dasharray:6 4,color:#0d3a33
+    style Shared fill:#ffffff,stroke:#9fb3d1,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    linkStyle default stroke:#1f2a36,stroke-width:2px

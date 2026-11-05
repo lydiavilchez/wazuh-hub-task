@@ -1,0 +1,34 @@
+flowchart LR
+    Prop["AI proposal<br/>decoder, rule<br/>and test logs"]
+
+    subgraph Checks["Checks on every proposal"]
+        C1["1. Static checks<br/>XML, IDs, forbidden<br/>patterns"]
+        C2["2. Upload and validate<br/>in the disposable Wazuh"]
+        C3["3. Positive logs<br/>right decoder, fields<br/>and rule"]
+        C4["4. Negative logs<br/>no alert"]
+        C5["5. Wazuh test suite<br/>and user's own rules<br/>nothing broken or silenced"]
+        C1 --> C2 --> C3 --> C4 --> C5
+    end
+
+    OK["Result for the person<br/>files, test table<br/>and explanation"]
+    Fix["Any check fails<br/>the exact errors go<br/>back to the AI"]
+    Stop["After 3 failed repairs<br/>stop and show what failed,<br/>deliver nothing untested"]
+
+    Prop --> C1
+    C5 --> OK
+    Checks -.-> Fix
+    Fix -.-> Prop
+    Fix -.-> Stop
+
+    classDef component fill:#cfe0ff,stroke:#1f4f99,stroke-width:2px,color:#0b2147
+    classDef ai fill:#e3d3fa,stroke:#5b2d9a,stroke-width:2px,color:#26104a
+    classDef good fill:#d6f0ea,stroke:#1f7a6b,stroke-width:2px,color:#0d3a33
+    classDef bad fill:#fde2e2,stroke:#a52a2a,stroke-width:2px,color:#5c1111
+    class C1,C2,C3,C4,C5 component
+    class Prop ai
+    class OK good
+    class Fix,Stop bad
+    style Checks fill:#ffffff,stroke:#1f4f99,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    linkStyle 0,1,2,3,4,5 stroke:#1f2a36,stroke-width:2px
+    linkStyle 6,8 stroke:#a52a2a,stroke-width:2px
+    linkStyle 7 stroke:#5b2d9a,stroke-width:2px

@@ -1,0 +1,28 @@
+flowchart TB
+    subgraph V1["v1: no connection"]
+        direction LR
+        A1["Person<br/>pastes log lines, picks the<br/>Wazuh version and uploads<br/>own decoders and rules"]
+        A2["Service<br/>tests everything in its own<br/>disposable Wazuh"]
+        A3["Person<br/>downloads the tested files<br/>and installs them"]
+        A1 --> A2 --> A3
+    end
+
+    subgraph V2["v2, optional: connector like Vesper's"]
+        direction LR
+        B1["User's Wazuh node"]
+        B2["Outbound-only connector<br/>mTLS, nothing connects in,<br/>reads version and own files"]
+        B3["Service<br/>tests the proposal in its<br/>own disposable Wazuh"]
+        B4["Person<br/>approves the installation"]
+        B5["Connector<br/>installs the files and<br/>validates the configuration"]
+        B1 --> B2 --> B3 --> B4 --> B5
+    end
+
+    A1 ~~~ B1
+
+    classDef component fill:#cfe0ff,stroke:#1f4f99,stroke-width:2px,color:#0b2147
+    classDef outside fill:#ffffff,stroke:#4a5563,stroke-width:2px,color:#1f2a36
+    class A2,B3 component
+    class A1,A3,B1,B2,B4,B5 outside
+    style V1 fill:#ffffff,stroke:#1f4f99,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    style V2 fill:#ffffff,stroke:#9fb3d1,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    linkStyle 0,1,2,3,4,5 stroke:#1f2a36,stroke-width:2px
