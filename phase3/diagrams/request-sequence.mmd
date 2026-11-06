@@ -29,7 +29,7 @@ sequenceDiagram
     S-->>O: Decoder, fields, rule and alert per log
     alt Some check fails (max 3 repairs)
         rect rgb(236, 226, 251)
-        O->>M: AI CALL 2 to 4: the exact errors
+        O->>M: AI CALL 2 to 4: the exact errors, hidden
         M-->>O: Corrected decoder and rule
         end
         O->>S: Same checks and tests again

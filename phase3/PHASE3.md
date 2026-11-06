@@ -128,7 +128,7 @@ The table summarises the function of each component:
 | Redactor | Replaces IPs, users, emails and host names with consistent placeholder values: the same IP is always replaced by the same value. The mapping stays in the service and is never sent to the model. The user's own decoders and rules are not sent either: the model only receives the IDs and names they use, which is all it needs to avoid clashes. It is fixed code, not AI. |
 | Static checker | Reviews the proposal before it reaches Wazuh. The specific checks are detailed in question 4. |
 | Test runner | Uploads the proposal to the disposable Wazuh, validates the configuration and runs all the test logs with logtest, both the hidden samples and the person's original lines. |
-| Disposable Wazuh (sandbox) | It is not our software: it is the official `wazuh/wazuh-manager` image, in a container of the same version as the user's, with no internet access, holding the user's own files and the proposal. It is created for one request and destroyed when it ends. Since logtest runs in the manager, in principle it needs neither the indexer nor the dashboard; I checked this in test P1. |
+| Disposable Wazuh (sandbox) | It is not our software: it is the official `wazuh/wazuh-manager` image, in a container of the same version as the user's, with no network, holding the user's own files and the proposal. It is created for one request and destroyed when it ends. Since logtest runs in the manager, in principle it needs neither the indexer nor the dashboard; I checked this in test P1. |
 | Per-customer store | Keeps the conversations, samples, files and results, encrypted and separated by organisation. |
 | Audit log | Records who did what and when, without storing the content of the logs. |
 | AI model | It is at an external provider and receives only the already hidden samples and the IDs and names used in the user's own files. |
@@ -180,7 +180,7 @@ flowchart TB
 
 | Data | What it is used for | Required? |
 |---|---|---|
-| 3 to 20 lines of the log, already hidden | They are the material to decode | Yes |
+| 3 to 20 lines of the log | They are the material to decode. The service hides the sensitive values before the model sees them | Yes |
 | What should be detected and how severe it is | Defines when the rule fires and at what level | Yes |
 | Format and origin of the log (syslog, JSON or file) | Wazuh decodes differently depending on the format | Yes |
 | Wazuh version | Allows starting a disposable Wazuh of the same version | Yes |
@@ -193,15 +193,15 @@ The service needs no credentials, alerts, agent information or indexer data.
 
 Everything below is **checked in my lab**, with Wazuh 4.14.9.
 
-The data from the user's Wazuh is obtained with three read calls to the API. In the first version, the person runs them themselves with commands the service provides, or downloads the files from the dashboard. In the second version, the connector would make them.
+The data from the user's Wazuh is obtained with a few read calls to the API. In the first version, the person runs them themselves with commands the service provides, or downloads the files from the dashboard. In the second version, the connector would make them.
 
 | Data | Call | What my lab returned |
 |---|---|---|
 | Version | `GET /manager/info` | `"version": "v4.14.9"`, which determines the image of the disposable Wazuh ([response](../phase2/evidence/api-manager-info.json)) |
 | Own files | `GET /decoders/files?relative_dirname=etc/decoders` and `GET /rules/files?relative_dirname=etc/rules` | `local_decoder.xml` and `local_rules.xml`. Only those in `etc/` matter, as they are the user's; those in `ruleset/` already come with the sandbox ([decoders](../phase2/evidence/api-decoders-files-custom.json), [rules](../phase2/evidence/api-rules-files-custom.json)) |
-| Content of the own rules | `GET /rules/files/local_rules.xml?raw=true` | Rules `100001` and `100010`, whose IDs the proposal must not reuse ([response](../phase2/evidence/api-local-rules-raw.xml)) |
+| Content of the own rules | `GET /rules/files/local_rules.xml?raw=true`, and the same for the own decoders | Rules `100001` and `100010`, whose IDs the proposal must not reuse ([response](../phase2/evidence/api-local-rules-raw.xml)) |
 
-The remaining calls are made by the service against its own disposable Wazuh, never against the user's. They are the same ones I tested in my lab with an invented application, `miapp`:
+The remaining calls are made by the service against its own disposable Wazuh, never against the user's. Since the disposable Wazuh has no network, the test runner makes them from the machine that runs the container, as I did in P1 with `docker exec`. They are the same ones I tested in my lab with an invented application, `miapp`:
 
 | Step | Call | What my lab returned |
 |---|---|---|
@@ -306,7 +306,7 @@ flowchart LR
 
 *Source: [tenant-data.mmd](diagrams/tenant-data.mmd).*
 
-As for data retention, I propose that the original log is never stored: it only exists in memory during the request, to hide it and to test the proposal with the real lines in the disposable Wazuh. The hidden samples, the conversation, the results and the user's files would be kept for 30 days, or until the person deletes them, and the disposable Wazuh only exists while the request lasts. The audit log would be kept for a year, without log content.
+As for data retention, I propose that the original log is never stored: it only exists in memory during the request, to hide it and to test the proposal with the real lines in the disposable Wazuh. The hidden samples, the conversation, the results and the user's files would be kept for 30 days, or until the person deletes them, and the disposable Wazuh only exists while the request lasts. The table that maps the hidden values to the real ones follows the same 30 days and is deleted with the conversation. The audit log would be kept for a year, without log content.
 
 ## 4. Where does the AI fit, what can go wrong and how is it controlled?
 
@@ -352,7 +352,7 @@ sequenceDiagram
     S-->>O: Decoder, fields, rule and alert per log
     alt Some check fails (max 3 repairs)
         rect rgb(236, 226, 251)
-        O->>M: AI CALL 2 to 4: the exact errors
+        O->>M: AI CALL 2 to 4: the exact errors, hidden
         M-->>O: Corrected decoder and rule
         end
         O->>S: Same checks and tests again
@@ -413,9 +413,9 @@ flowchart LR
 
 *Source: [test-pipeline.mmd](diagrams/test-pipeline.mmd).*
 
-The static check verifies that the XML is well formed and uses only allowed elements, that the rule IDs are within the range reserved for custom rules (100000 to 120000) and do not clash with the user's, that `overwrite` is not used to modify Wazuh rules, and that there are no level 0 rules that depend on Wazuh rules, because those rules turn off existing alerts.
+The static check verifies that the XML is well formed and uses only allowed elements, that the rule IDs are within the range reserved for custom rules (100000 to 120000) and do not clash with the user's, that `overwrite` is not used to modify Wazuh rules, and that there are no level 0 rules that depend on Wazuh rules, unless the person explicitly asks for them and confirms it, because those rules turn off existing alerts.
 
-The positive and negative logs are run twice: with the hidden samples the AI saw, and with the person's original lines. A hidden value may not keep the exact format of the real one, for example a host name with dashes, so a rule could pass with the hidden samples and fail with the real log. The original lines never leave the service: they only go to the disposable Wazuh, which has no network.
+The positive and negative logs are run twice: with the hidden samples the AI saw, and with the person's original lines. A hidden value may not keep the exact format of the real one, for example a host name with dashes, so a rule could pass with the hidden samples and fail with the real log. The original lines never leave the service: they only go to the disposable Wazuh, which has no network. If a test with the original lines fails, the error is hidden with the same mapping before it goes back to the AI in a repair, so no real value reaches the model.
 
 The last control relies on something Wazuh already has. Its code includes a ruleset test suite: in version v4.14.9 it is 107 `.ini` files in [`ruleset/testing/tests`](https://github.com/wazuh/wazuh/tree/v4.14.9/ruleset/testing/tests) that state which decoder and which rule each log should produce, and a script, `runtests.py`, that runs them with `wazuh-logtest`. If a proposal makes any of those results change, it has broken or silenced a Wazuh detection. The same applies to the test logs of the user's own rules, if they provide them.
 
@@ -537,7 +537,7 @@ The principle of the design is that the service never delivers anything untested
 | The user's Wazuh API | In the first version it does not affect it, because it does not connect to it. In the second, if the connector fails, it falls back to uploading files manually | In the second version: "I cannot connect to your Wazuh. You can upload your files manually." |
 | The store or the Hub identity | It stops accepting new requests, because without knowing who the person is or being able to save, it cannot work safely | "The service is not available right now." |
 
-Since it does not connect to the user's Wazuh, no failure of the service affects their detections. Their Wazuh keeps working normally regardless of what happens in the service.
+In the first version, since it does not connect to the user's Wazuh, no failure of the service affects their detections. Their Wazuh keeps working normally regardless of what happens in the service.
 
 ## 7. How much would it cost and what are the main risks?
 
@@ -561,7 +561,7 @@ Next, the budget for a pilot of **2,000 requests per month**. It includes what t
 | Item | What it is | How I calculate it | Cost per month | Share of the total |
 |---|---|---|---|---|
 | The AI | The calls to the model | 2,000 requests × $0.14 | $280 | 26% |
-| Disposable Wazuh instances | The managers where the tests are run | 4 containers of 2 vCPU and 4 GB, always on, at $0.08 per hour for 730 hours | $234 | 22% |
+| Disposable Wazuh instances | The managers where the tests are run | Capacity for 4 containers of 2 vCPU and 4 GB at once, on machines that are always on, at $0.08 per hour for 730 hours | $234 | 22% |
 | Platform | API, encrypted database, storage and logs | Estimate | $150 | 14% |
 | Operation | Keeping the service running, reviewing the cases that fail and updating the evaluation | 8 hours per month at $50 per hour | $400 | 38% |
 | **Total** | | | **$1,064** | about **$0.53 per request** |

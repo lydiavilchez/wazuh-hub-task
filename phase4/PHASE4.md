@@ -239,7 +239,7 @@ I check it like any code: with tests. The difference is who writes them. Before 
 
 The tests I would never skip are the ones that protect the customer:
 
-- No original value from the log (IPs, users, emails, host names) reaches the model.
+- No original value from the log (IPs, users, emails, host names) reaches the model, not even in the errors sent back in repairs.
 - The static checker rejects rules that silence Wazuh alerts or reuse IDs that are already taken.
 - One organisation cannot read another's data.
 - A request never makes more than four AI calls.

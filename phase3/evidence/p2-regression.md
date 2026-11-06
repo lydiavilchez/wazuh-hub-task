@@ -74,5 +74,5 @@ The test bank detects a rule that silences SSH alerts: 0 failures before, 10 aft
 
 Two limits to keep in mind:
 
-- **Time.** The full bank takes about 11 minutes with this runner, because it starts one `wazuh-logtest` process per log line. That is too slow to run on every request. The service would need to run only the test files related to the rules the proposal touches, or a faster runner, and keep the full bank for scheduled runs. This is a design point to add to `PHASE3.md`.
+- **Time.** The full bank takes about 11 minutes with this runner, because it starts one `wazuh-logtest` process per log line. That is too slow to run on every request. The service would need to run only the test files related to the rules the proposal touches, or a faster runner, and keep the full bank for scheduled runs. `PHASE3.md` (question 4) takes this into account.
 - **Scope.** The bank only covers what Wazuh's own tests cover. A silencing rule on a source with no test file would not be caught.
