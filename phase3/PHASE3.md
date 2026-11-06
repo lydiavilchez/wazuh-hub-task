@@ -125,13 +125,13 @@ The table summarises the function of each component:
 | Component | Function |
 |---|---|
 | Orchestrator | Receives the request, checks who the person is and which organisation they belong to, and coordinates the other steps. It is a single application, not a separate service per step. |
-| Redactor | Replaces IPs, users, emails and host names with consistent placeholder values: the same IP is always replaced by the same value. The mapping stays in the service and is never sent to the model. It is fixed code, not AI. |
+| Redactor | Replaces IPs, users, emails and host names with consistent placeholder values: the same IP is always replaced by the same value. The mapping stays in the service and is never sent to the model. The user's own decoders and rules are not sent either: the model only receives the IDs and names they use, which is all it needs to avoid clashes. It is fixed code, not AI. |
 | Static checker | Reviews the proposal before it reaches Wazuh. The specific checks are detailed in question 4. |
-| Test runner | Uploads the proposal to the disposable Wazuh, validates the configuration and runs all the test logs with logtest. |
+| Test runner | Uploads the proposal to the disposable Wazuh, validates the configuration and runs all the test logs with logtest, both the hidden samples and the person's original lines. |
 | Disposable Wazuh (sandbox) | It is not our software: it is the official `wazuh/wazuh-manager` image, in a container of the same version as the user's, with no internet access, holding the user's own files and the proposal. It is created for one request and destroyed when it ends. Since logtest runs in the manager, in principle it needs neither the indexer nor the dashboard; I checked this in test P1. |
 | Per-customer store | Keeps the conversations, samples, files and results, encrypted and separated by organisation. |
 | Audit log | Records who did what and when, without storing the content of the logs. |
-| AI model | It is at an external provider and receives only the already hidden samples and the files of that request. |
+| AI model | It is at an external provider and receives only the already hidden samples and the IDs and names used in the user's own files. |
 
 ## 2. How does it connect to the user's Wazuh and what data does it need?
 
@@ -184,7 +184,7 @@ flowchart TB
 | What should be detected and how severe it is | Defines when the rule fires and at what level | Yes |
 | Format and origin of the log (syslog, JSON or file) | Wazuh decodes differently depending on the format | Yes |
 | Wazuh version | Allows starting a disposable Wazuh of the same version | Yes |
-| The user's own decoders and rules | Avoid reusing IDs and names already taken, and allow checking that the proposal does not break them | Recommended |
+| The user's own decoders and rules | Avoid reusing IDs and names already taken, and allow checking that the proposal does not break them. The full files only go to the disposable Wazuh; the model only sees their IDs and names | Recommended |
 | Files excluded with `decoder_exclude` | If the user has replaced Wazuh decoders, the sandbox has to reproduce it | Optional |
 
 The service needs no credentials, alerts, agent information or indexer data.
@@ -247,7 +247,7 @@ The service uses the same identity as the rest of the Hub, so no additional logi
 
 - Everything that is stored is tied to an organisation, and the server filters by it on every read.
 - Each request has its own disposable Wazuh, which is never shared between customers, has no internet access and is destroyed when it ends. This way, one customer's files cannot appear in another's tests.
-- Only the already hidden samples and the files of that request are sent to the model. There is no memory between requests or between customers. The contract with the provider must exclude training on that data, which is **to be checked** with a specific provider.
+- Only the already hidden samples and the IDs and names used in the user's own decoders and rules are sent to the model, never the full files. There is no memory between requests or between customers. The contract with the provider must exclude training on that data, which is **to be checked** with a specific provider.
 - The table that maps the hidden values to the real ones is stored encrypted in the service and is only used to show the person their own data.
 - Wazuh staff have no access by default. Support access would need the customer's permission and would be logged.
 
@@ -272,7 +272,7 @@ flowchart LR
         Orch["Orchestrator<br/>only reads and writes the data<br/>of the caller's organisation"]
     end
 
-    Model["AI model<br/>receives only the hidden samples<br/>and files of one request,<br/>no storage, no training"]
+    Model["AI model<br/>receives only the hidden samples<br/>and the IDs and names in the<br/>user's files, no storage,<br/>no training"]
     Staff["Wazuh staff<br/>no access by default,<br/>audited support access only<br/>with the customer's permission"]
     Denied["Not allowed<br/>reading another organisation's data,<br/>sharing a disposable Wazuh,<br/>training on customer data"]
 
@@ -306,11 +306,11 @@ flowchart LR
 
 *Source: [tenant-data.mmd](diagrams/tenant-data.mmd).*
 
-As for data retention, I propose that the original log is never stored: it only exists in memory while it is being hidden. The hidden samples, the conversation, the results and the user's files would be kept for 30 days, or until the person deletes them, and the disposable Wazuh only exists while the request lasts. The audit log would be kept for a year, without log content.
+As for data retention, I propose that the original log is never stored: it only exists in memory during the request, to hide it and to test the proposal with the real lines in the disposable Wazuh. The hidden samples, the conversation, the results and the user's files would be kept for 30 days, or until the person deletes them, and the disposable Wazuh only exists while the request lasts. The audit log would be kept for a year, without log content.
 
 ## 4. Where does the AI fit, what can go wrong and how is it controlled?
 
-The AI is at the centre of the service: without it there would be no proposal. For that very reason, the design surrounds it with controls. The AI has no tools, does not call the Wazuh API, does not see other customers' data and makes no final decision. It receives the hidden samples, the person's request and a Wazuh syntax guide, and returns its proposal in a fixed format, with the files and the test cases separate. Everything it returns is considered untrusted until it passes the tests.
+The AI is at the centre of the service: without it there would be no proposal. For that very reason, the design surrounds it with controls. The AI has no tools, does not call the Wazuh API, does not see other customers' data and makes no final decision. It receives the hidden samples, the person's request, a Wazuh syntax guide and the IDs and names already used in the user's files, and returns its proposal in a fixed format, with the files and the test cases separate. Everything it returns is considered untrusted until it passes the tests.
 
 Each request has at most four AI calls. The first generates the proposal and the next three, if needed, fix it based on the exact error Wazuh returned. If after the fourth the proposal does not pass all the tests, the service tells the person and delivers no half-finished result.
 
@@ -341,14 +341,14 @@ sequenceDiagram
     P->>UI: Confirm, say what should raise an alert and at which level
     UI->>O: Confirmed samples and intent
     rect rgb(236, 226, 251)
-    O->>M: AI CALL 1: samples, intent, syntax guide, user's files
+    O->>M: AI CALL 1: samples, intent, syntax guide, IDs and names in user's files
     M-->>O: Decoder, rule, positive and negative test logs (structured output)
     end
     O->>C: Static checks
     C-->>O: OK or list of problems
     O->>S: Start sandbox with user's files and the proposal
     S-->>O: Upload result and configuration validation
-    O->>S: Logtest: positive logs, negative logs, Wazuh regression corpus
+    O->>S: Logtest: positive and negative logs, hidden and original lines, Wazuh regression corpus
     S-->>O: Decoder, fields, rule and alert per log
     alt Some check fails (max 3 repairs)
         rect rgb(236, 226, 251)
@@ -414,6 +414,8 @@ flowchart LR
 *Source: [test-pipeline.mmd](diagrams/test-pipeline.mmd).*
 
 The static check verifies that the XML is well formed and uses only allowed elements, that the rule IDs are within the range reserved for custom rules (100000 to 120000) and do not clash with the user's, that `overwrite` is not used to modify Wazuh rules, and that there are no level 0 rules that depend on Wazuh rules, because those rules turn off existing alerts.
+
+The positive and negative logs are run twice: with the hidden samples the AI saw, and with the person's original lines. A hidden value may not keep the exact format of the real one, for example a host name with dashes, so a rule could pass with the hidden samples and fail with the real log. The original lines never leave the service: they only go to the disposable Wazuh, which has no network.
 
 The last control relies on something Wazuh already has. Its code includes a ruleset test suite: in version v4.14.9 it is 107 `.ini` files in [`ruleset/testing/tests`](https://github.com/wazuh/wazuh/tree/v4.14.9/ruleset/testing/tests) that state which decoder and which rule each log should produce, and a script, `runtests.py`, that runs them with `wazuh-logtest`. If a proposal makes any of those results change, it has broken or silenced a Wazuh detection. The same applies to the test logs of the user's own rules, if they provide them.
 
@@ -543,7 +545,7 @@ Since it does not connect to the user's Wazuh, no failure of the service affects
 
 All the figures in this section are **assumptions** for a first budget, not measurements. In a pilot, I would replace them with real data.
 
-As the reference model I use Claude Sonnet 5.5, which costs $2 per million input tokens and $10 per million output tokens, according to [Anthropic's pricing table](https://platform.claude.com/docs/en/about-claude/pricing) consulted on 5 November 2026. I estimate that each call uses about 20,000 input tokens (instructions, syntax guide, samples and the user's files, with a limit) and about 3,000 output tokens. The model's reasoning [is billed as output](https://platform.claude.com/docs/en/models/sonnet-5-5/migration-guide), so that figure is the most uncertain and the first one I would measure in a pilot.
+As the reference model I use Claude Sonnet 5.5, which costs $2 per million input tokens and $10 per million output tokens, according to [Anthropic's pricing table](https://platform.claude.com/docs/en/about-claude/pricing) consulted on 5 November 2026. I estimate that each call uses about 20,000 input tokens (instructions, syntax guide, samples and the IDs and names in the user's files, with a limit) and about 3,000 output tokens. The model's reasoning [is billed as output](https://platform.claude.com/docs/en/models/sonnet-5-5/migration-guide), so that figure is the most uncertain and the first one I would measure in a pilot.
 
 First, how much one request costs for the model alone. Each call is a query to the AI, and a request may need several, because every repair is one more call:
 

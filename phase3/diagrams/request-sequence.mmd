@@ -18,14 +18,14 @@ sequenceDiagram
     P->>UI: Confirm, say what should raise an alert and at which level
     UI->>O: Confirmed samples and intent
     rect rgb(236, 226, 251)
-    O->>M: AI CALL 1: samples, intent, syntax guide, user's files
+    O->>M: AI CALL 1: samples, intent, syntax guide, IDs and names in user's files
     M-->>O: Decoder, rule, positive and negative test logs (structured output)
     end
     O->>C: Static checks
     C-->>O: OK or list of problems
     O->>S: Start sandbox with user's files and the proposal
     S-->>O: Upload result and configuration validation
-    O->>S: Logtest: positive logs, negative logs, Wazuh regression corpus
+    O->>S: Logtest: positive and negative logs, hidden and original lines, Wazuh regression corpus
     S-->>O: Decoder, fields, rule and alert per log
     alt Some check fails (max 3 repairs)
         rect rgb(236, 226, 251)

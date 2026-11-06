@@ -16,7 +16,7 @@ flowchart LR
         Orch["Orchestrator<br/>only reads and writes the data<br/>of the caller's organisation"]
     end
 
-    Model["AI model<br/>receives only the hidden samples<br/>and files of one request,<br/>no storage, no training"]
+    Model["AI model<br/>receives only the hidden samples<br/>and the IDs and names in the<br/>user's files, no storage,<br/>no training"]
     Staff["Wazuh staff<br/>no access by default,<br/>audited support access only<br/>with the customer's permission"]
     Denied["Not allowed<br/>reading another organisation's data,<br/>sharing a disposable Wazuh,<br/>training on customer data"]
 
