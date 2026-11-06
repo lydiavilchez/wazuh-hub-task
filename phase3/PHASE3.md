@@ -131,7 +131,7 @@ The table summarises the function of each component:
 | Disposable Wazuh (sandbox) | It is not our software: it is the official `wazuh/wazuh-manager` image, in a container of the same version as the user's, with no network, holding the user's own files and the proposal. It is created for one request and destroyed when it ends. Since logtest runs in the manager, in principle it needs neither the indexer nor the dashboard; I checked this in test P1. |
 | Per-customer store | Keeps the conversations, samples, files and results, encrypted and separated by organisation. |
 | Audit log | Records who did what and when, without storing the content of the logs. |
-| AI model | It is at an external provider and receives only the already hidden samples and the IDs and names used in the user's own files. |
+| AI model | It is at an external provider and receives only the already hidden samples, the person's request, a Wazuh syntax guide and the IDs and names used in the user's own files. |
 
 ## 2. How does it connect to the user's Wazuh and what data does it need?
 
@@ -201,7 +201,7 @@ The data from the user's Wazuh is obtained with a few read calls to the API. In 
 | Own files | `GET /decoders/files?relative_dirname=etc/decoders` and `GET /rules/files?relative_dirname=etc/rules` | `local_decoder.xml` and `local_rules.xml`. Only those in `etc/` matter, as they are the user's; those in `ruleset/` already come with the sandbox ([decoders](../phase2/evidence/api-decoders-files-custom.json), [rules](../phase2/evidence/api-rules-files-custom.json)) |
 | Content of the own rules | `GET /rules/files/local_rules.xml?raw=true`, and the same for the own decoders | Rules `100001` and `100010`, whose IDs the proposal must not reuse ([response](../phase2/evidence/api-local-rules-raw.xml)) |
 
-The remaining calls are made by the service against its own disposable Wazuh, never against the user's. Since the disposable Wazuh has no network, the test runner makes them from the machine that runs the container, as I did in P1 with `docker exec`. They are the same ones I tested in my lab with an invented application, `miapp`:
+The remaining calls are made by the service against its own disposable Wazuh, never against the user's. Since the disposable Wazuh has no network, the test runner makes them from the machine that runs the container, as I did in P1 with `docker cp` and `docker exec`. They are the same ones I tested in my lab with an invented application, `miapp`:
 
 | Step | Call | What my lab returned |
 |---|---|---|
@@ -247,7 +247,7 @@ The service uses the same identity as the rest of the Hub, so no additional logi
 
 - Everything that is stored is tied to an organisation, and the server filters by it on every read.
 - Each request has its own disposable Wazuh, which is never shared between customers, has no internet access and is destroyed when it ends. This way, one customer's files cannot appear in another's tests.
-- Only the already hidden samples and the IDs and names used in the user's own decoders and rules are sent to the model, never the full files. There is no memory between requests or between customers. The contract with the provider must exclude training on that data, which is **to be checked** with a specific provider.
+- Only the already hidden samples, the person's request and the IDs and names used in the user's own decoders and rules are sent to the model, never the full files. There is no memory between requests or between customers. The contract with the provider must exclude training on that data, which is **to be checked** with a specific provider.
 - The table that maps the hidden values to the real ones is stored encrypted in the service and is only used to show the person their own data.
 - Wazuh staff have no access by default. Support access would need the customer's permission and would be logged.
 
@@ -419,7 +419,7 @@ The positive and negative logs are run twice: with the hidden samples the AI saw
 
 The last control relies on something Wazuh already has. Its code includes a ruleset test suite: in version v4.14.9 it is 107 `.ini` files in [`ruleset/testing/tests`](https://github.com/wazuh/wazuh/tree/v4.14.9/ruleset/testing/tests) that state which decoder and which rule each log should produce, and a script, `runtests.py`, that runs them with `wazuh-logtest`. If a proposal makes any of those results change, it has broken or silenced a Wazuh detection. The same applies to the test logs of the user's own rules, if they provide them.
 
-I checked this in my lab with two tests ([P1 and P2](evidence/)):
+I checked this in my lab with two tests ([P1 and P2](evidence/)). Before them, I also checked that the Phase 2 test rule had been deleted from my manager ([P0](evidence/p0-rules-files-after-cleanup.json)):
 
 - **A disposable Wazuh with only the manager is enough to test.** A `wazuh/wazuh-manager:4.14.9` container with no network had its analysis engine running in about 2.5 s in one measurement, with logtest already answering at that point, and in 14.1 s in another, slower one, and used about 523 MiB of memory. With the Phase 2 decoder and rule copied in, without restarting, the `miapp` decoder and rule 100100 at level 5 with an alert came out.
 - **The test suite detects a rule that silences alerts.** `runtests.py` runs 103 of the 107 files (it skips the 4 geoip ones by default) and counts 1,770 checks, one per log line. With no changes, all 1,770 passed. After adding a level 0 rule (100200) that depends on SSH's `5710`, 10 failed, all in `sshd.ini`, with the message `Expected: 5710. Got: 100200`. One of the failures is for rule 5712, a child of 5710, so the suite also detects the chain effect.
@@ -579,7 +579,7 @@ The container size is based on the minimum requirements of the Wazuh server, [2 
 | A proposal that passes the tests but is incorrect | The tests are only as good as the samples | State which samples it was tested with, ask for more when needed and leave the decision to the person |
 | Silencing real detections | It is the most serious error, because it stops alerting without anyone noticing | The static check and the Wazuh test suite on every proposal |
 | Sensitive data reaching the model | The redactor may fail with unusual formats | The person's review before sending and a contract that excludes training |
-| Wazuh 5.0 | It changes the format to YAML and the way of testing: in RC2 [there is no `wazuh-logtest` or API replacement](https://github.com/wazuh/wazuh-documentation/issues/10582), and tests are done from the "Log test" page of the dashboard | Start with 4.x, which is the stable version, and add a disposable Wazuh 5.0 when its way of testing settles. Migrating from 4.x to 5.0 would be the natural extension of the service |
+| Wazuh 5.0 | It changes the format to YAML and the way of testing: in RC2 `wazuh-logtest` is no longer in the manager, and a [user who tested it](https://github.com/wazuh/wazuh-documentation/issues/10582) found no command-line or API replacement and tested from the "Log test" page of the dashboard. The [documentation](https://documentation.wazuh.com/5.0-rc/user-manual/wazuh-indexer/modules/content-manager.html) says testing moves to the Content Manager in the indexer | Start with 4.x, which is the stable version, and add a disposable Wazuh 5.0 when its way of testing settles. Migrating from 4.x to 5.0 would be the natural extension of the service |
 | Overlap with Vesper | Vesper already answers questions about Wazuh | It can be an independent service or a capability inside Vesper. I would decide it with the team (question 8) |
 | Abuse or runaway cost | Mass requests or very large logs | Limits per organisation, a maximum sample size and a maximum of four calls per request |
 

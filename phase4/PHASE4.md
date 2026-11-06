@@ -111,7 +111,7 @@ In a team, no work would start from a loose idea, but from an approved task in t
 
 For each approved task I would prepare a short card for the agent: what it has to do, which files it can touch, which tests must pass, what it must not do and when it has to stop and ask me. It is the same thing I did with the brief for the Phase 3 checks, but with a fixed format.
 
-For example: "build the static checker and test it with valid and invalid decoders and rules". The acceptance criteria would come from the Phase 3 design: reject IDs that are outside 100000-120000 or clash with the user's, `overwrite` on Wazuh rules, and level 0 rules that depend on Wazuh rules unless the person explicitly asks for them.
+For example: "build the static checker and test it with valid and invalid decoders and rules". The acceptance criteria would come from the Phase 3 design: reject IDs that are outside 100000-120000 or clash with the user's, `overwrite` on Wazuh rules, and level 0 rules that depend on Wazuh rules unless the person explicitly asks for them and confirms it.
 
 ### Who does what
 
@@ -355,7 +355,7 @@ The risk when growing is that each new feature gets built its own way and the se
 
 ### How each extension fits
 
-- **Wazuh 5.0.** The format changes: decoders and rules move from XML to YAML, and custom 4.x rules have to be recreated ([RESEARCH.md](../phase2/research/RESEARCH.md)). In the path, only the format the AI writes and the disposable Wazuh used for testing change; it would be a 5.0 one once its way of testing settles (Phase 3 notes that RC2 has no `wazuh-logtest` or API replacement). The same sample logs would serve as tests in both versions, and the 4.x to 5.0 migration I noted in [Phase 2](../phase2/PHASE2.md) would be one more use of the service. This is a **proposal**.
+- **Wazuh 5.0.** The format changes: decoders and rules move from XML to YAML, and custom 4.x rules have to be recreated ([RESEARCH.md](../phase2/research/RESEARCH.md)). In the path, only the format the AI writes and the disposable Wazuh used for testing change; it would be a 5.0 one once its way of testing settles (Phase 3 notes that in RC2 `wazuh-logtest` is no longer in the manager). The same sample logs would serve as tests in both versions, and the 4.x to 5.0 migration I noted in [Phase 2](../phase2/PHASE2.md) would be one more use of the service. This is a **proposal**.
 - **The connector.** Only the last step changes: instead of downloading the files, the person approves the installation and the connector does it. The tests and the person's decision stay the same.
 - **More customers.** The path does not change. What grows is the number of disposable Wazuh instances running at once, which I explain below.
 
