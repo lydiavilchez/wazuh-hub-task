@@ -1,0 +1,76 @@
+flowchart TB
+    subgraph Setup["What every agent works with"]
+        direction LR
+        Know["Knows<br/>CLAUDE.md, its role file,<br/>the task card,<br/>the Phase 3 design"]
+        Can["Can<br/>edit the files in the card,<br/>run tests, start a<br/>sandbox with no network"]
+        Never["Never<br/>merges or deploys, adds<br/>dependencies on its own,<br/>touches customer data<br/>or a real Wazuh"]
+        Know ~~~ Can ~~~ Never
+    end
+
+    subgraph Flow[" "]
+        direction LR
+        subgraph Plan["1. Me"]
+            direction TB
+            Idea["Idea or<br/>user feedback"]
+            Task["Approved task<br/>problem, priority,<br/>acceptance criteria"]
+            Card["Task card<br/>scope, files, tests,<br/>limits, when to stop"]
+            Idea --> Task --> Card
+        end
+
+        subgraph Build["2. Agents build"]
+            direction TB
+            Builder["Builder agent<br/>code, tests and docs"]
+            Checks["Automatic checks<br/>unit tests, Wazuh tests,<br/>evaluation cases"]
+            Corpus["Corpus agent<br/>sample logs and<br/>expected results"]
+            Builder --> Checks
+            Corpus -.-> Checks
+        end
+
+        subgraph Review["3. AI reviews AI"]
+            direction TB
+            Reviewer["Reviewer agent<br/>reads only, does not see<br/>the builder's reasoning"]
+            Standards["Standards review<br/>for example Gentleman<br/>Guardian Angel"]
+            Back["Findings go back<br/>to the builder until<br/>both reviews pass"]
+            Reviewer --> Standards --> Back
+        end
+
+        subgraph Approve["4. Me"]
+            direction TB
+            Mine["My check<br/>review results, tests and<br/>what is not covered"]
+            CI["Pull request and CI<br/>tests, security, docs"]
+            Merge["I approve and merge<br/>an agent never merges"]
+            Mine --> CI --> Merge
+        end
+
+        subgraph Release["5. Release"]
+            direction TB
+            Deploy["Staged release<br/>approved tooling,<br/>monitoring, rollback"]
+        end
+
+        Plan --> Build
+        Build --> Review
+        Review --> Approve
+        Approve --> Release
+    end
+
+    Setup -.-> Flow
+
+    classDef outside fill:#ffffff,stroke:#4a5563,stroke-width:2px,color:#1f2a36
+    classDef ai fill:#e3d3fa,stroke:#5b2d9a,stroke-width:2px,color:#26104a
+    classDef component fill:#cfe0ff,stroke:#1f4f99,stroke-width:2px,color:#0b2147
+    classDef good fill:#d6f0ea,stroke:#1f7a6b,stroke-width:2px,color:#0d3a33
+    classDef bad fill:#fde2e2,stroke:#a52a2a,stroke-width:2px,color:#5c1111
+    class Idea,Task,Card,Mine,Merge outside
+    class Builder,Reviewer,Standards,Corpus ai
+    class Checks,CI,Deploy,Back component
+    class Know,Can good
+    class Never bad
+    style Setup fill:#ffffff,stroke:#5b2d9a,stroke-width:2px,stroke-dasharray:6 4,color:#26104a
+    style Flow fill:none,stroke:none,color:#ffffff
+    style Plan fill:#ffffff,stroke:#9fb3d1,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    style Build fill:#ffffff,stroke:#5b2d9a,stroke-width:2px,stroke-dasharray:6 4,color:#26104a
+    style Review fill:#ffffff,stroke:#5b2d9a,stroke-width:2px,stroke-dasharray:6 4,color:#26104a
+    style Approve fill:#ffffff,stroke:#9fb3d1,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    style Release fill:#ffffff,stroke:#1f4f99,stroke-width:2px,stroke-dasharray:6 4,color:#0b2147
+    linkStyle default stroke:#1f2a36,stroke-width:2px
+    linkStyle 0,1 stroke:transparent,stroke-width:0px
